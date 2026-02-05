@@ -1,4 +1,191 @@
-manifest.json
-sw.js
-icon-192.png
-icon-512.png
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Omar Ortega</title>
+
+<style>
+body{font-family:Segoe UI,sans-serif;background:#f0f2f5;margin:0}
+.header{background:#003566;color:#fff;padding:15px;text-align:center;border-bottom:4px solid #ffc300;position:sticky;top:0}
+.container{padding:15px;max-width:520px;margin:auto;background:#fff}
+.hidden{display:none}
+input,select,button{width:100%;padding:14px;margin:8px 0;border-radius:12px;border:1px solid #ccc;font-size:16px}
+button{background:#1877f2;color:#fff;border:none;font-weight:bold}
+.btn-save{background:#42b72a}
+.btn-excel{background:#008000}
+.btn-share{background:#25d366}
+.btn-logout{background:#d32f2f;margin-top:25px}
+table{width:100%;margin-top:15px;border-collapse:collapse;font-size:12px}
+th,td{border:1px solid #ccc;padding:8px;text-align:center}
+</style>
+</head>
+
+<body onload="iniciarApp()">
+
+<!-- LOGIN -->
+<div id="loginSection" class="container" style="margin-top:80px;text-align:center">
+<h2>Ingreso</h2>
+<input id="u" placeholder="Usuario">
+<input id="p" type="password" placeholder="Contraseña">
+<button onclick="validar()">Entrar</button>
+</div>
+
+<!-- PANEL -->
+<div id="mainSection" class="hidden">
+<div class="header">
+<h3>Omar Ortega Caro</h3>
+<small id="reloj"></small>
+</div>
+
+<div class="container">
+
+<form id="fVentas">
+<select id="tipo" onchange="actualizarCampos()">
+<option>KIT</option>
+<option>CHIP</option>
+<option>PORTA</option>
+<option>RENUEVATE</option>
+</select>
+
+<input type="date" id="fecha">
+<input id="tel" placeholder="Número celular (10 dígitos)" maxlength="10" required>
+<input id="iccid" placeholder="ICCID (19 dígitos)" maxlength="19" required>
+
+<div id="extras">
+<input id="imei" placeholder="IMEI (15 dígitos)" maxlength="15">
+<input id="marca" placeholder="Marca">
+<input id="modelo" placeholder="Modelo">
+</div>
+
+<button class="btn-save">💾 Guardar venta</button>
+</form>
+
+<table>
+<thead>
+<tr>
+<th>Celular</th>
+<th>Tipo</th>
+<th>Borrar</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+
+<button class="btn-excel" onclick="descargarExcel()">📊 Descargar Excel</button>
+<button class="btn-share" onclick="compartirExcel()">📤 Compartir Excel</button>
+<button class="btn-logout" onclick="salir()">Cerrar sesión</button>
+
+</div>
+</div>
+
+<script>
+const USER="23OECO97111857227";
+const PASS="AVNACIONAL4029";
+
+function iniciarApp(){
+setInterval(()=>reloj.innerText=new Date().toLocaleTimeString(),1000);
+if(localStorage.getItem("sesion")==="1"){
+loginSection.classList.add("hidden");
+mainSection.classList.remove("hidden");
+dibujarTabla();
+}
+fecha.value=new Date().toISOString().split("T")[0];
+actualizarCampos();
+}
+
+function validar(){
+if(u.value===USER && p.value===PASS){
+localStorage.setItem("sesion","1");
+location.reload();
+}else alert("Acceso incorrecto");
+}
+
+function salir(){
+localStorage.clear();
+location.reload();
+}
+
+function actualizarCampos(){
+extras.style.display=(tipo.value==="KIT"||tipo.value==="RENUEVATE")?"block":"none";
+}
+
+fVentas.onsubmit=e=>{
+e.preventDefault();
+let db=JSON.parse(localStorage.getItem("omar_vFinal"))||[];
+db.push({
+id:Date.now(),
+tel:tel.value,
+imei:imei.value,
+iccid:iccid.value,
+tipo:tipo.value,
+tda:"4029",
+cad:"BA",
+nom:"AV NACIONAL",
+pro:"Omar Ortega Caro",
+fec:fecha.value,
+mar:marca.value,
+mod:modelo.value
+});
+localStorage.setItem("omar_vFinal",JSON.stringify(db));
+e.target.reset();
+fecha.value=new Date().toISOString().split("T")[0];
+dibujarTabla();
+alert("Venta guardada");
+};
+
+function dibujarTabla(){
+tabla.innerHTML="";
+(JSON.parse(localStorage.getItem("omar_vFinal"))||[]).reverse().forEach(v=>{
+tabla.innerHTML+=`
+<tr>
+<td>${v.tel}</td>
+<td>${v.tipo}</td>
+<td><button onclick="borrar(${v.id})">X</button></td>
+</tr>`;
+});
+}
+
+function borrar(id){
+let db=JSON.parse(localStorage.getItem("omar_vFinal"));
+localStorage.setItem("omar_vFinal",JSON.stringify(db.filter(x=>x.id!==id)));
+dibujarTabla();
+}
+
+// ===== EXCEL TELCEL =====
+function generarCSV(){
+let db=JSON.parse(localStorage.getItem("omar_vFinal"))||[];
+if(!db.length){alert("No hay ventas");return null;}
+
+let csv="sep=,\n";
+csv+="NUM. CELULAR,IMEI,ICCID,Renuevate/ Kit/Chip/Porta,#TIENDA,CADENA,TIENDA,PROMOTOR,FECHA,MARCA,MODELO\n";
+
+db.forEach(v=>{
+csv+=`"${v.tel}","${v.imei}","${v.iccid}","${v.tipo}","${v.tda}","${v.cad}","${v.nom}","${v.pro}","${v.fec}","${v.mar}","${v.mod}"\n`;
+});
+return csv;
+}
+
+function descargarExcel(){
+let csv=generarCSV();
+if(!csv)return;
+let fecha=new Date().toISOString().split("T")[0];
+let uri="data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv);
+let a=document.createElement("a");
+a.href=uri;
+a.download=`Comisiones_Telcel_Omar_${fecha}.csv`;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+}
+
+function compartirExcel(){
+let csv=generarCSV();
+if(!csv)return;
+let uri="data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv);
+window.open(uri,"_blank");
+}
+</script>
+
+</body>
+</html>
