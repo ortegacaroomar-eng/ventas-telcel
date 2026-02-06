@@ -2,190 +2,220 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App Omar Ortega</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SISTEMA 4029 - FORMATO FINAL</title>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 
 <style>
-body{font-family:Segoe UI,sans-serif;background:#f0f2f5;margin:0}
-.header{background:#003566;color:#fff;padding:15px;text-align:center;border-bottom:4px solid #ffc300;position:sticky;top:0}
-.container{padding:15px;max-width:520px;margin:auto;background:#fff}
-.hidden{display:none}
-input,select,button{width:100%;padding:14px;margin:8px 0;border-radius:12px;border:1px solid #ccc;font-size:16px}
-button{background:#1877f2;color:#fff;border:none;font-weight:bold}
-.btn-save{background:#42b72a}
-.btn-excel{background:#008000}
-.btn-share{background:#25d366}
-.btn-logout{background:#d32f2f;margin-top:25px}
-table{width:100%;margin-top:15px;border-collapse:collapse;font-size:12px}
-th,td{border:1px solid #ccc;padding:8px;text-align:center}
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f6; margin: 0; }
+.header { background: #003566; color: white; padding: 15px; text-align: center; border-bottom: 4px solid #ffc300; }
+.container { max-width: 450px; margin: auto; background: white; padding: 20px; min-height: 100vh; }
+input, select, button { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+button { background: #003566; color: white; font-weight: bold; border: none; cursor: pointer; }
+.btn-save { background: #28a745; margin-top: 10px; }
+.btn-excel { background: #000; border: 2px solid #ffc300; margin-top: 25px; height: 60px; font-size: 18px; color: #fff; }
+.btn-link { background: #ffffff; color: #003566; border: 2px solid #003566; margin-top: 8px; font-size: 14px; }
+.hidden { display: none; }
+.reloj { font-size: 30px; font-weight: bold; color: #003566; margin: 20px 0; text-align: center; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 </style>
 </head>
 
-<body onload="iniciarApp()">
+<body onload="inicio()">
 
-<!-- LOGIN -->
-<div id="loginSection" class="container" style="margin-top:80px;text-align:center">
-<h2>Ingreso</h2>
-<input id="u" placeholder="Usuario">
-<input id="p" type="password" placeholder="Contraseña">
-<button onclick="validar()">Entrar</button>
+<div id="lSec" style="text-align:center; padding:50px 20px;">
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Telcel_logo.svg/1200px-Telcel_logo.svg.png" width="160">
+<div id="rel" class="reloj">00:00:00</div>
+<input type="text" id="u" placeholder="Usuario">
+<input type="password" id="p" placeholder="Contraseña">
+<button onclick="entrar()">ENTRAR AL PANEL</button>
 </div>
 
-<!-- PANEL -->
-<div id="mainSection" class="hidden">
+<div id="mSec" class="hidden">
+
 <div class="header">
-<h3>Omar Ortega Caro</h3>
-<small id="reloj"></small>
+<h3 style="margin:0">OMAR ORTEGA CARO</h3>
+<small id="txtMes" style="font-weight:bold;"></small>
 </div>
 
 <div class="container">
 
-<form id="fVentas">
-<select id="tipo" onchange="actualizarCampos()">
-<option>KIT</option>
-<option>CHIP</option>
-<option>PORTA</option>
-<option>RENUEVATE</option>
+<form id="fReg">
+
+<select id="iTipo" onchange="verEq()" required>
+<option value="" disabled selected>-- TIPO --</option>
+<option value="AK">AK</option>
+<option value="CHIP">CHIP</option>
+<option value="PORTA">PORTA</option>
+<option value="REN">REN</option>
 </select>
 
-<input type="date" id="fecha">
-<input id="tel" placeholder="Número celular (10 dígitos)" maxlength="10" required>
-<input id="iccid" placeholder="ICCID (19 dígitos)" maxlength="19" required>
+<input type="text" id="iTel" placeholder="TELÉFONO (10)" maxlength="10" required>
+<input type="text" id="iIcc" placeholder="ICCID (19)" maxlength="19" required>
 
-<div id="extras">
-<input id="imei" placeholder="IMEI (15 dígitos)" maxlength="15">
-<input id="marca" placeholder="Marca">
-<input id="modelo" placeholder="Modelo">
+<div id="gEq">
+<input type="text" id="iIme" placeholder="IMEI (15)" maxlength="15">
+<input type="text" id="iMar" placeholder="MARCA">
+<input type="text" id="iMod" placeholder="MODELO">
 </div>
 
-<button class="btn-save">💾 Guardar venta</button>
+<input type="date" id="iFec">
+
+<button type="submit" class="btn-save"> GUARDAR REGISTRO</button>
+
 </form>
 
-<table>
+<table id="tVistas">
 <thead>
 <tr>
-<th>Celular</th>
-<th>Tipo</th>
-<th>Borrar</th>
+<th>TEL</th>
+<th>TIPO</th>
+<th>-</th>
 </tr>
 </thead>
-<tbody id="tabla"></tbody>
+<tbody></tbody>
 </table>
 
-<button class="btn-excel" onclick="descargarExcel()">📊 Descargar Excel</button>
-<button class="btn-share" onclick="compartirExcel()">📤 Compartir Excel</button>
-<button class="btn-logout" onclick="salir()">Cerrar sesión</button>
+<button onclick="bajarExcel()" class="btn-excel"> DESCARGAR EXCEL 1.5.5</button>
+
+<button onclick="window.open('https://registro.telcel.com/vinculatulinea/#/', '_blank')" style="background:#003566; color:#ffc300; border:2px solid #ffc300; margin-top:10px;"> VINCULA TU LÍNEA</button>
+
+<button onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSfQMT1FUeOLNJUzB8DeGhKNTqiU_DS7wr7y2p_Ab7xgHHjYbw/viewform', '_blank')" class="btn-link"> ABRIR FORMULARIO</button>
+
+<button onclick="salir()" style="margin-top:40px; background:#6c757d; font-size:11px;"> Cerrar Sesión</button>
 
 </div>
 </div>
 
 <script>
-const USER="23OECO97111857227";
-const PASS="AVNACIONAL4029";
 
-function iniciarApp(){
-setInterval(()=>reloj.innerText=new Date().toLocaleTimeString(),1000);
-if(localStorage.getItem("sesion")==="1"){
-loginSection.classList.add("hidden");
-mainSection.classList.remove("hidden");
-dibujarTabla();
-}
-fecha.value=new Date().toISOString().split("T")[0];
-actualizarCampos();
+let uA="";
+const mS=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+
+function inicio(){
+setInterval(()=>{document.getElementById('rel').innerText=new Date().toLocaleTimeString()},1000);
+const ahora=new Date();
+document.getElementById('txtMes').innerText="FORMATO 1.5.5 - "+mS[ahora.getMonth()]+" "+ahora.getFullYear();
+const s=localStorage.getItem('ses_omar');
+if(s){uA=s;mostrar();}
+document.getElementById('iFec').value=ahora.toISOString().split('T')[0];
 }
 
-function validar(){
-if(u.value===USER && p.value===PASS){
-localStorage.setItem("sesion","1");
-location.reload();
-}else alert("Acceso incorrecto");
+/* ===== LOGIN CORREGIDO (ÚNICO CAMBIO) ===== */
+function entrar(){
+
+const u=document.getElementById('u').value.trim().toUpperCase();
+const p=document.getElementById('p').value.trim().toUpperCase();
+
+const userReal="23OECO97111857227";
+const passReal="AVNACIONAL4029";
+
+if(u===userReal && p===passReal){
+localStorage.setItem('ses_omar',userReal);
+uA=userReal;
+mostrar();
+}else{
+alert("Acceso Incorrecto");
+}
+
 }
 
 function salir(){
-localStorage.clear();
+localStorage.removeItem('ses_omar');
 location.reload();
 }
 
-function actualizarCampos(){
-extras.style.display=(tipo.value==="KIT"||tipo.value==="RENUEVATE")?"block":"none";
+function mostrar(){
+document.getElementById('lSec').className='hidden';
+document.getElementById('mSec').className='';
+pintarTabla();
 }
 
-fVentas.onsubmit=e=>{
-e.preventDefault();
-let db=JSON.parse(localStorage.getItem("omar_vFinal"))||[];
-db.push({
-id:Date.now(),
-tel:tel.value,
-imei:imei.value,
-iccid:iccid.value,
-tipo:tipo.value,
-tda:"4029",
-cad:"BA",
-nom:"AV NACIONAL",
-pro:"Omar Ortega Caro",
-fec:fecha.value,
-mar:marca.value,
-mod:modelo.value
-});
-localStorage.setItem("omar_vFinal",JSON.stringify(db));
-e.target.reset();
-fecha.value=new Date().toISOString().split("T")[0];
-dibujarTabla();
-alert("Venta guardada");
-};
+function verEq(){
+const t=document.getElementById('iTipo').value;
+document.getElementById('gEq').style.display=(t==='CHIP'||t==='PORTA')?'none':'block';
+}
 
-function dibujarTabla(){
-tabla.innerHTML="";
-(JSON.parse(localStorage.getItem("omar_vFinal"))||[]).reverse().forEach(v=>{
-tabla.innerHTML+=`
-<tr>
-<td>${v.tel}</td>
-<td>${v.tipo}</td>
-<td><button onclick="borrar(${v.id})">X</button></td>
+function pintarTabla(){
+const tbody=document.querySelector('#tVistas tbody');
+tbody.innerHTML="";
+const d=JSON.parse(localStorage.getItem("db_omar_"+uA)||"[]");
+
+d.reverse().slice(0,5).forEach(x=>{
+tbody.innerHTML+=`<tr>
+<td>${x.t}</td>
+<td>${x.tp}</td>
+<td><button onclick="borrar(${x.id})" style="background:red;color:white;border:none;padding:2px 5px;">X</button></td>
 </tr>`;
 });
 }
 
 function borrar(id){
-let db=JSON.parse(localStorage.getItem("omar_vFinal"));
-localStorage.setItem("omar_vFinal",JSON.stringify(db.filter(x=>x.id!==id)));
-dibujarTabla();
+let d=JSON.parse(localStorage.getItem("db_omar_"+uA)||"[]");
+d=d.filter(x=>x.id!==id);
+localStorage.setItem("db_omar_"+uA,JSON.stringify(d));
+pintarTabla();
 }
 
-// ===== EXCEL TELCEL =====
-function generarCSV(){
-let db=JSON.parse(localStorage.getItem("omar_vFinal"))||[];
-if(!db.length){alert("No hay ventas");return null;}
+document.getElementById('fReg').onsubmit=function(e){
+e.preventDefault();
 
-let csv="sep=,\n";
-csv+="NUM. CELULAR,IMEI,ICCID,Renuevate/ Kit/Chip/Porta,#TIENDA,CADENA,TIENDA,PROMOTOR,FECHA,MARCA,MODELO\n";
+const d=JSON.parse(localStorage.getItem("db_omar_"+uA)||"[]");
 
-db.forEach(v=>{
-csv+=`"${v.tel}","${v.imei}","${v.iccid}","${v.tipo}","${v.tda}","${v.cad}","${v.nom}","${v.pro}","${v.fec}","${v.mar}","${v.mod}"\n`;
+d.push({
+t:iTel.value,
+im:iIme.value,
+ic:iIcc.value,
+tp:iTipo.value,
+f:iFec.value,
+ma:iMar.value.toUpperCase(),
+mo:iMod.value.toUpperCase(),
+id:Date.now()
 });
-return csv;
+
+localStorage.setItem("db_omar_"+uA,JSON.stringify(d));
+this.reset();
+iFec.value=new Date().toISOString().split('T')[0];
+pintarTabla();
+};
+
+function bajarExcel(){
+
+const d=JSON.parse(localStorage.getItem("db_omar_"+uA)||"[]");
+if(d.length===0) return alert("Sin datos");
+
+const h=[[
+"NUM. CELULAR","IMEI","ICCID","Renuevate/ Kit/Chip/Porta",
+"#TIENDA / Determinante","SOLO NOMBRE DE LA CADENA",
+"SOLO NOMBRE DE TIENDA SIN CADENA","NOMBRE COMPLETO PROMOTOR",
+"FECHA DE ACTIVACION","MARCA","MODELO"
+]];
+
+d.forEach(x=>{
+const p=x.f.split('-');
+h.push([
+x.t,x.im,x.ic,x.tp,
+"4029","BA","AV NACIONAL","ORTEGA CARO OMAR",
+`${p[2]}/${p[1]}/${p[0]}`,
+x.ma,x.mo
+]);
+});
+
+const wb=XLSX.utils.book_new();
+const ws=XLSX.utils.aoa_to_sheet(h);
+
+ws['!cols']=[
+{wch:18},{wch:22},{wch:25},{wch:25},{wch:22},
+{wch:25},{wch:35},{wch:30},{wch:22},{wch:15},{wch:15}
+];
+
+XLSX.utils.book_append_sheet(wb,ws,"Hoja1");
+XLSX.writeFile(wb,"formato de comisiones Omar 1.5.5.xlsx");
+
 }
 
-function descargarExcel(){
-let csv=generarCSV();
-if(!csv)return;
-let fecha=new Date().toISOString().split("T")[0];
-let uri="data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv);
-let a=document.createElement("a");
-a.href=uri;
-a.download=`Comisiones_Telcel_Omar_${fecha}.csv`;
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-}
-
-function compartirExcel(){
-let csv=generarCSV();
-if(!csv)return;
-let uri="data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv);
-window.open(uri,"_blank");
-}
 </script>
-
 </body>
 </html>
