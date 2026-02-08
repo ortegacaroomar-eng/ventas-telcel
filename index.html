@@ -10,14 +10,20 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { width: 95%; padding: 12px; background-color: #003366; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e9ecef; text-align: center; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0px 4px 15px rgba(0,0,0,0.2); max-width: 400px; margin: auto; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        
+        /* Botones grandes y claros */
+        .btn-azul { width: 100%; padding: 15px; background-color: #003366; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .btn-verde { width: 100%; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; }
+        .btn-rojo { width: 100%; padding: 15px; background-color: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .btn-gris { width: 100%; padding: 15px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        
         .hidden { display: none; }
-        .link-accion { color: #003366; cursor: pointer; text-decoration: underline; font-size: 0.9em; font-weight: bold; }
-        img { width: 160px; margin-bottom: 20px; }
-        h2 { color: #333; }
+        img { width: 180px; margin-bottom: 20px; }
+        h2 { color: #003366; margin-bottom: 20px; }
+        hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -29,33 +35,34 @@
             <h2>Iniciar Sesión</h2>
             <input type="email" id="login-email" placeholder="Correo electrónico">
             <input type="password" id="login-password" placeholder="Contraseña">
-            <button onclick="login()">ENTRAR</button>
-            <p>¿No tienes cuenta? <br><span class="link-accion" onclick="mostrarRegistro()">Registrar nuevo promotor</span></p>
+            <button class="btn-azul" onclick="login()">ENTRAR AL SISTEMA</button>
+            <hr>
+            <p>¿No tienes cuenta de promotor?</p>
+            <button class="btn-verde" onclick="mostrarRegistro()">REGISTRAR NUEVO PROMOTOR</button>
         </div>
 
         <div id="registro-form" class="hidden">
             <h2>Registrar Promotor</h2>
-            <input type="email" id="reg-email" placeholder="Correo del promotor">
-            <input type="password" id="reg-password" placeholder="Crear Contraseña">
-            <button onclick="registrar()">CREAR CUENTA</button>
-            <p><span class="link-accion" onclick="mostrarLogin()">Volver al inicio</span></p>
+            <input type="email" id="reg-email" placeholder="Correo para el promotor">
+            <input type="password" id="reg-password" placeholder="Crea una contraseña">
+            <button class="btn-verde" onclick="registrar()">CREAR CUENTA AHORA</button>
+            <button class="btn-gris" onclick="mostrarLogin()">CANCELAR / VOLVER</button>
         </div>
     </div>
 
     <div class="container hidden" id="app-container">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Telcel_logo.svg/1200px-Telcel_logo.svg.png" alt="Telcel" style="width: 100px;">
         <h2>Registro de Ventas</h2>
-        <p id="user-info" style="font-size: 0.8em; color: #666;"></p>
+        <p id="user-info" style="font-weight: bold; color: #555;"></p>
         <hr>
-        <input type="text" id="producto" placeholder="Nombre del Producto">
-        <input type="number" id="precio" placeholder="Precio de venta ($)">
-        <button onclick="guardarVenta()">GUARDAR REGISTRO</button>
-        <br><br>
-        <span class="link-accion" style="color: #cc0000;" onclick="logout()">Cerrar Sesión</span>
+        <input type="text" id="producto" placeholder="Nombre del Producto o Plan">
+        <input type="number" id="precio" placeholder="Precio ($)">
+        <button class="btn-azul" onclick="guardarVenta()">GUARDAR VENTA</button>
+        <button class="btn-rojo" onclick="logout()">CERRAR SESIÓN</button>
     </div>
 
     <script>
-        // Configuración real de tu Firebase
+        // Configuración real con tus datos de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD4UK_j8UxMwOCtrtXlYftB8Lp_S3Y-D3s",
             authDomain: "ventastelcel4029.firebaseapp.com",
@@ -66,12 +73,12 @@
             appId: "1:480758010888:web:e948c54f028889498669c5"
         };
 
-        // Inicializar Firebase
+        // Iniciar Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // Funciones de navegación
+        // Control de pantallas
         function mostrarRegistro() {
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('registro-form').classList.remove('hidden');
@@ -81,76 +88,72 @@
             document.getElementById('login-form').classList.remove('hidden');
         }
 
-        // Crear cuenta nueva
+        // Crear usuario nuevo
         function registrar() {
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-password').value;
-            if(!email || !pass) return alert("Llena todos los campos");
+            if(!email || !pass) return alert("Por favor, llena todos los campos");
 
             auth.createUserWithEmailAndPassword(email, pass)
                 .then(() => {
-                    alert("¡Promotor registrado con éxito!");
+                    alert("¡Promotor registrado correctamente!");
                     mostrarLogin();
                 })
-                .catch(err => alert("Error: " + err.message));
+                .catch(error => alert("Error al registrar: " + error.message));
         }
 
-        // Iniciar sesión
+        // Loguearse
         function login() {
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-password').value;
             if(!email || !pass) return alert("Escribe tu correo y contraseña");
 
             auth.signInWithEmailAndPassword(email, pass)
-                .catch(err => alert("Error de acceso: " + err.message));
+                .catch(error => alert("Datos incorrectos: " + error.message));
         }
 
-        // Guardar venta con formato Día/Mes/Año
+        // Guardar venta con formato 08/02/2026
         function guardarVenta() {
             const producto = document.getElementById('producto').value;
             const precio = document.getElementById('precio').value;
             const user = auth.currentUser;
             
-            // Generar fecha automática: 08/02/2026
+            // Formatear fecha actual
             const hoy = new Date();
             const dia = hoy.getDate().toString().padStart(2, '0');
             const mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
             const anio = hoy.getFullYear();
-            const fechaFormateada = `${dia}/${mes}/${anio}`;
+            const fechaOk = `${dia}/${mes}/${anio}`;
 
             if (producto && precio) {
                 db.ref('ventas').push({
                     promotor: user.email,
                     producto: producto,
                     precio: precio,
-                    fecha: fechaFormateada
+                    fecha: fechaOk
                 }).then(() => {
-                    alert("✅ Venta guardada con fecha: " + fechaFormateada);
+                    alert("✅ Registrado con éxito el " + fechaOk);
                     document.getElementById('producto').value = "";
                     document.getElementById('precio').value = "";
                 }).catch(err => alert("Error al guardar: " + err.message));
             } else {
-                alert("Por favor escribe el producto y el precio");
+                alert("Completa los datos de la venta");
             }
         }
 
-        function logout() {
-            auth.signOut();
-        }
+        function logout() { auth.signOut(); }
 
-        // Observador de usuario (Controla qué pantalla mostrar)
+        // Revisar si el usuario entró o salió
         auth.onAuthStateChanged(user => {
-            const authCont = document.getElementById('auth-container');
-            const appCont = document.getElementById('app-container');
-            const info = document.getElementById('user-info');
-
+            const authView = document.getElementById('auth-container');
+            const appView = document.getElementById('app-container');
             if (user) {
-                authCont.classList.add('hidden');
-                appCont.classList.remove('hidden');
-                info.innerText = "Conectado como: " + user.email;
+                authView.classList.add('hidden');
+                appView.classList.remove('hidden');
+                document.getElementById('user-info').innerText = "Vendedor: " + user.email;
             } else {
-                authCont.classList.remove('hidden');
-                appCont.classList.add('hidden');
+                authView.classList.remove('hidden');
+                appView.classList.add('hidden');
             }
         });
     </script>
